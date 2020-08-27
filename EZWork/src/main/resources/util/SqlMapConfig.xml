@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"  
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<typeAliases>
+		<typeAlias alias="member" type="com.ez.work.domain.Member" />
+		<typeAlias alias="eventboard" type="com.ez.work.domain.EventBoard" />
+		<typeAlias alias="noticeboard" type="com.ez.work.domain.NoticeBoard" />
+		<typeAlias alias ="mail" type="com.ez.work.domain.Mail" />
+		<typeAlias alias ="appr" type="com.ez.work.domain.Appr" />
+		<typeAlias alias ="cmtmanage" type="com.ez.work.domain.CmtManage" />
+		<typeAlias alias ="mroom" type="com.ez.work.domain.MeetingRoom" />
+		<typeAlias alias ="schedule" type="com.ez.work.domain.Schedule" />
+		<typeAlias alias ="allist" type="com.ez.work.domain.ALList" />
+		<typeAlias alias="alrequest" type="com.ez.work.domain.ALRequest" />
+		<typeAlias alias="bookmark" type="com.ez.work.domain.bookmark" />
+		<typeAlias alias="Pds" type="com.ez.work.domain.Pds" />
+	</typeAliases>
+
+	<mappers>
+		<mapper resource="sql/member.xml" />
+		<mapper resource="sql/eventboard.xml" />
+		<mapper resource="sql/noticeboard.xml" />
+		<mapper resource="sql/mail.xml" />
+		<mapper resource="sql/appr.xml"/>
+		<mapper resource="sql/CmtManage.xml"/>
+		<mapper resource="sql/reserve.xml"/>
+		<mapper resource="sql/schedule.xml"/>
+		<mapper resource="sql/ALlist.xml"/>
+		<mapper resource="sql/ALrequest.xml"/>
+		<mapper resource="sql/Pds.xml"/>
+	</mappers>
+
+</configuration>

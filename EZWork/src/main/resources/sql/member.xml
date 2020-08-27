@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- SQL 맵퍼 파일은 xml이기 때문에 제일 먼저 xml 선언이 옵니다. -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 민혁 - 사원조회 -->
+<!-- 혜정 - 사원등록 -->
+
+<mapper namespace="Members">
+    
+    <!-- 혜정 - 사원등록 -->
+    <insert id="insert" parameterType="member">
+        insert into member(M_CODE,M_PASS,M_FILE,M_ORIGINAL,M_PART_C,M_LEVEL,
+        M_NAME,M_GENDER,M_BIRTH,M_ARMY,M_MARRIAGE,M_MOBILE_TEL,M_EMAIL,M_ADDRESS,
+         M_JOIN_DATE,SC_NAME, SC_MAJOR,SC_DEGREE,SC_ADDRESS,SC_GRAD_DAY, 
+         LG_NAME, LG_TEST,LG_GRADE,LG_ORGAN,LG_DATE, LI_NAME, LI_ORGAN,LI_DATE,
+          M_POSTCODE,M_ADDRESS2)
+      values
+         ('EMP'||emp_seq.nextval, #{M_PASS}, #{M_FILE, jdbcType=VARCHAR},#{M_ORIGINAL, jdbcType=VARCHAR}, 
+         #{M_PART_C}, #{M_LEVEL}, #{M_NAME},
+         #{M_GENDER}, #{M_BIRTH}, #{M_ARMY}, #{M_MARRIAGE}, 
+         #{M_MOBILE_TEL}, #{M_EMAIL}, #{M_ADDRESS}, TO_DATE(#{M_JOIN_DATE},'YYYY-MM-DD'), 
+         #{SC_NAME}, #{SC_MAJOR}, #{SC_DEGREE}, #{SC_ADDRESS}, SYSDATE,
+         #{LG_NAME}, #{LG_TEST}, #{LG_GRADE}, #{LG_ORGAN}, #{LG_DATE},
+         #{LI_NAME}, #{LI_ORGAN}, #{LI_DATE},
+         #{M_POSTCODE}, #{M_ADDRESS2}
+         
+         )   
+    </insert> 
+
+
+
+   <!-- 혜정 - 사원코드 체크 -->
+   <select id="idcheck" resultType="member" parameterType="String">
+      select *
+      from member where M_CODE = #{M_CODE}
+   </select>
+   
+      <select id="admin_idcheck" resultType="member" parameterType="String">
+      select *
+      from member where M_CODE = #{admin}
+   </select>
+   
+   
+   
+   <!--  혜정 - 본인 사원 정보 수정 --> 
+    <update id="update" parameterType="member">
+       update member
+       set M_PASS = #{M_PASS}, M_MOBILE_TEL = #{M_MOBILE_TEL}, M_EMAIL = #{M_EMAIL}, 
+       M_POSTCODE = #{M_POSTCODE}, M_ADDRESS = #{M_ADDRESS}, M_ADDRESS2 = #{M_ADDRESS2}
+       where M_CODE = #{M_CODE}
+    </update>
+    
+    
+    <!--  혜정 - 인사팀에서 사원정보수정 --> 
+    <update id="update_admin_re" parameterType="member">
+       update member
+       set M_NAME= #{M_NAME},M_PASS = #{M_PASS}, M_FILE= #{M_FILE, jdbcType=VARCHAR}, M_ORIGINAL = #{M_ORIGINAL, jdbcType=VARCHAR},
+       	   M_PART_C = #{M_PART_C}, M_GENDER =#{M_GENDER}, M_BIRTH= #{M_BIRTH}, M_ARMY= #{M_ARMY}, M_MARRIAGE= #{M_MARRIAGE},
+       	   M_MOBILE_TEL= #{M_MOBILE_TEL},M_EMAIL= #{M_EMAIL}, M_POSTCODE=#{M_POSTCODE}, M_ADDRESS=#{M_ADDRESS}, 
+       	   M_ADDRESS2= #{M_ADDRESS2}, SC_NAME= #{SC_NAME}, SC_MAJOR= #{SC_MAJOR}, SC_DEGREE= #{SC_DEGREE}, SC_ADDRESS= #{SC_ADDRESS},
+       	   SC_GRAD_DAY= #{SC_GRAD_DAY}, 
+       	   LG_NAME= #{LG_NAME}, LG_TEST= #{LG_TEST}, LG_GRADE= #{LG_GRADE}, LG_ORGAN= #{LG_ORGAN},
+       	   LG_DATE= #{LG_DATE}, LI_NAME= #{LI_NAME}, LI_ORGAN= #{LI_ORGAN}, LI_DATE= #{LI_DATE}
+       	   where M_CODE = #{M_CODE}       
+    </update>
+    
+     <!--  혜정 - 인사팀에서 사원정보수정 --> 
+    <update id="update_admin" parameterType="member">
+       update member
+       set M_NAME= #{M_NAME},M_PASS = #{M_PASS}, M_FILE= #{M_FILE, jdbcType=VARCHAR}, M_ORIGINAL = #{M_ORIGINAL, jdbcType=VARCHAR},
+       	   M_PART_C = #{M_PART_C}, M_GENDER =#{M_GENDER}, M_BIRTH= #{M_BIRTH}, M_ARMY= #{M_ARMY}, M_MARRIAGE= #{M_MARRIAGE},
+       	   M_MOBILE_TEL= #{M_MOBILE_TEL},M_EMAIL= #{M_EMAIL}, M_POSTCODE=#{M_POSTCODE}, M_ADDRESS=#{M_ADDRESS}, 
+       	   M_ADDRESS2= #{M_ADDRESS2}, SC_NAME= #{SC_NAME}, SC_MAJOR= #{SC_MAJOR}, SC_DEGREE= #{SC_DEGREE}, SC_ADDRESS= #{SC_ADDRESS},
+       	 
+       	   LG_NAME= #{LG_NAME}, LG_TEST= #{LG_TEST}, LG_GRADE= #{LG_GRADE}, LG_ORGAN= #{LG_ORGAN},
+       	   LG_DATE= #{LG_DATE}, LI_NAME= #{LI_NAME}, LI_ORGAN= #{LI_ORGAN}, LI_DATE= #{LI_DATE}
+       	   where M_CODE = #{M_CODE}       
+    </update>
+    
+    <!--  혜정 - 인사팀에서 퇴사처리 수정 --> 
+    <update id="update_res" parameterType="member">
+       update member
+       set RES_DATE= #{RES_DATE}
+       where M_CODE = #{M_CODE}         
+    </update>
+    
+    
+    <!-- 혜정 - 사원 목록 -->
+    <select id="getList" resultType="member">
+       select M_CODE, M_NAME, M_PART_C, M_LEVEL, M_MOBILE_TEL  
+      from member     
+    </select>
+    
+    
+    <!-- 혜정 - 퇴사 사원 목록 -->
+    <select id="getresignList" resultType="member" parameterType="map">
+      select M_CODE, M_NAME, M_PART_C, M_LEVEL, RES_DATE, M_EMAIL,M_MOBILE_TEL  
+      from member 
+      WHERE RES_DATE IS NOT NULL
+    </select>
+  
+   
+    <!--  혜정 - 사원 조회 (퇴사자 제외)--> 
+    
+   <select id="getSearchList2" parameterType="map" resultType="member"> 
+     select M_FILE, M_CODE, M_NAME, M_PART_C, M_LEVEL,  M_EMAIL, M_MOBILE_TEL
+      from member 
+      where RES_DATE IS NULL
+                  <if test="search_field!=null">
+         and
+         <choose>
+               <when test="search_field=='M_NAME'">M_NAME</when>
+                   <when test="search_field=='M_PART_C'">M_PART_C</when>
+                   <when test="search_field=='M_MOBILE_TEL'">M_MOBILE_TEL</when>
+         </choose>
+         like #{search_word}
+        
+         
+      </if>
+     
+   </select>
+   
+   <!-- 혜정 - 사원 수 검색 -->
+   <select id="searchcount2" parameterType="map" resultType="int">
+      select count(*) from member where M_CODE != 'admin'
+      <if test="search_field!=null">
+         and
+         <choose>
+               <when test="search_field=='M_NAME'">M_NAME</when>
+                   <when test="search_field=='M_PART_C'">M_PART_C</when>
+                   <when test="search_field=='M_MOBILE_TEL'">M_MOBILE_TEL</when>
+         </choose>
+         like #{search_word}
+      </if>
+   </select>
+   
+   
+    
+    
+    
+    
+    
+    <!--  민혁 - 사원 즐겨찾기 목록  -->
+   <select id="EmpWishlist" resultType="member" parameterType="String">
+      select member.*, bookmark.m_owner
+      from member
+      inner join bookmark on member.m_code = bookmark.m_code
+      where bookmark.m_owner = #{m_owner}
+   </select>
+
+   <!-- 민혁 - 사원 검색 / 즐겨찾기 -->
+   <select id="getSearchList" parameterType="map"
+      resultType="member">
+      select mem.*, bookmark.M_BOOKMARK, bookmark.M_OWNER   
+      from bookmark right join (select *
+      from ( select rownum rnum, b.*
+      from (select * from member where
+      M_CODE != 'admin' AND RES_DATE IS NULL
+      <if test="search_field!=null">
+         and
+         <choose>
+            <when test="search_field=='M_CODE'">M_CODE</when>
+            <when test="search_field=='M_PART_C'">M_PART_C</when>
+            <when test="search_field=='M_NAME'">M_NAME</when>
+            <when test="search_field=='M_LEVEL'">M_LEVEL</when>
+         </choose>
+         like #{search_word}
+      </if>
+      order by M_CODE
+         )b
+      )
+      where rnum &gt; = #{start} and rnum &lt; = #{end}) mem
+      on bookmark.m_code = mem.m_code and bookmark.m_owner = #{owner}
+   </select>
+   
+   <!-- 민혁 - 사원 수 검색 -->
+   <select id="searchcount" parameterType="map" resultType="int">
+      select count(*) from member where M_CODE != 'admin'
+      <if test="search_field!=null">
+         and
+         <choose>
+            <when test="search_field=='M_CODE'">M_CODE</when>
+            <when test="search_field=='M_PART_C'">M_PART_C</when>
+            <when test="search_field=='M_NAME'">M_NAME</when>
+            <when test="search_field=='M_LEVEL'">M_LEVEL</when>
+         </choose>
+         like #{search_word}
+      </if>
+   </select>
+   
+   <!--  민혁 - 사원 상세 정보  -->
+   <select id="EmpCheck" resultType="member" parameterType="String">
+      select *
+      from member where M_CODE = #{M_CODE}
+   </select>
+   
+   <!--  민혁 - 즐겨찾기 값 삽입  -->
+   <insert id="bkinsert" parameterType="map">
+      insert into bookmark
+      values(#{bookmark}, #{owner}, #{user})
+   </insert>
+   
+   <!--  민혁 - 즐겨찾기 값 삭제  -->
+   <delete id="bkdelete" parameterType="map">
+      delete from bookmark
+      where
+      m_owner = #{owner} and m_code = #{user}
+   </delete>
+   
+   <!--  민혁 - 즐겨찾기 값 불러오기  -->
+   <select id="bkinf" parameterType="String" resultType="bookmark">
+      select *
+      from bookmark
+      where m_owner = #{owner}
+   </select>
+   
+   <!--  민혁 - 즐겨찾기 OWNER값 비교  -->
+   <select id="getOwnerId" resultType="bookmark" parameterType="String">
+      select *
+      from bookmark
+      where m_owner = #{owner}
+   </select>
+   
+   <!--  민혁 - 사원 즐겨찾기 삭제  -->
+   <select id="DeleteWishEmp" resultType="int" parameterType="String">
+      delete from bookmark
+      where m_code = #{m_CODE}
+   </select>
+</mapper>

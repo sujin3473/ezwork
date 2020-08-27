@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CmtManage">
+
+	<!-- 출근 등록 (사번, 이름, 생성날짜, 출근시간만 삽입) overtime 수정해야함 -->
+	<insert id="insert" parameterType="cmtmanage">
+		insert into commute
+		(CM_CODE,
+		CM_TEAMNAME,
+		CM_MCODE,
+		CM_NAME,
+		CM_ONTIME,
+		CM_DATE)
+		values
+		(to_char(sysdate,'yyyymmdd'),
+		#{CM_TEAMNAME,
+		jdbcType=VARCHAR},
+		#{CM_MCODE, jdbcType=VARCHAR},
+		#{CM_NAME,
+		jdbcType=VARCHAR},
+		to_char(sysdate,'HH24:MI'),
+		sysdate)
+	</insert>
+
+	<!-- 퇴근등록 -->
+	<update id="modify" parameterType="java.util.Map">
+		update commute
+		set
+		CM_OFFTIME =
+		to_char(sysdate,'HH24:MI'), CM_OFFDATE = sysdate
+		where
+		CM_CODE=to_char(sysdate,'yyyymmdd') and CM_MCODE = #{id}
+	</update>
+
+	<!-- 당일 근태 현황만 출력 -->
+	<select id="Detail" parameterType="string"
+		resultType="cmtmanage">
+		select * from commute
+		where
+		CM_CODE =
+		to_char(sysdate,'yyyymmdd') AND CM_MCODE = #{M_CODE}
+	</select>
+
+
+	<select id="monthlyCmt" parameterType="string"
+		resultType="cmtmanage">
+		select
+		* from commute where CM_MCODE = #{M_CODE}
+	</select>
+
+	<!-- 하루 근무시간 계산 -->
+	<update id="dailyWork">
+		UPDATE commute
+		SET CM_WORKHOUR = (SELECT
+		((REGEXP_REPLACE(CM_OFFTIME,
+		'[[:punct:]]')-REGEXP_REPLACE(CM_ONTIME,
+		'[[:punct:]]')))
+		FROM COMMUTE WHERE CM_CODE =
+		to_char(sysdate,'yyyymmdd')) WHERE CM_CODE =
+		to_char(sysdate,'yyyymmdd')
+	</update>
+
+
+	<select id="list" parameterType="java.util.Map"
+		resultType="cmtmanage">
+		select * from
+		(select rownum rnum, b.*
+		from
+		(select * from
+		commute
+		order by CM_CODE desc
+		) b
+		)
+		where rnum
+		&gt;=#{start} and rnum
+		&lt;=
+		#{end} and CM_MCODE = #{id}
+	</select>
+
+	<!-- list 개수 -->
+	<select id="count" parameterType="String" resultType="int">
+		select count(*) from commute where CM_MCODE = #{id}
+	</select>
+
+	<!-- 누적계산 -->
+	<update id="accumulative" parameterType="String">
+		update commute
+		set CM_ACCHOUR = (
+		SELECT SUM(CM_WORKHOUR) FROM COMMUTE WHERE SUBSTR(CM_CODE,1,6) =
+		to_char(sysdate,'yyyymm')
+		AND CM_MCODE = #{id})
+	</update>
+
+</mapper>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Pds">
+
+	<select id="count" resultType="int">
+		select count(*) from PDS
+	</select>
+
+	<select id="list" parameterType="java.util.Map"
+		resultType="Pds">
+		select * from
+		(select rownum rnum, b.*
+		from
+		(select * from
+		PDS
+		order by PDS_RE_REF desc,
+		PDS_RE_SEQ asc) b
+		)
+		where rnum
+		&gt;=#{start} and rnum &lt;= #{end}
+	</select>
+
+	<update id="ReadCountUpdate" parameterType="int">
+		update PDS
+		set
+		PDS_READCOUNT = PDS_READCOUNT+1
+		where PDS_NO = #{number}
+	</update>
+
+	<insert id="insert" parameterType="Pds">
+		<selectKey resultType="int" order="BEFORE"
+			keyProperty="PDS_NO">
+			select nvl(max(PDS_NO), 0) + 1 from PDS
+		</selectKey>
+		insert into PDS
+		(PDS_NO,
+		PDS_SORT, PDS_NAME, PDS_PASS,
+		PDS_TITLE, PDS_CONTENT, 
+		PDS_FILE, PDS_ORIGINAL,
+		PDS_RE_REF,
+		PDS_RE_LEV,
+		PDS_RE_SEQ, PDS_READCOUNT,
+		PDS_DATE)
+		values
+		(#{PDS_NO},
+		#{PDS_SORT},#{PDS_NAME}, #{PDS_PASS},
+		#{PDS_TITLE}, #{PDS_CONTENT},
+		#{PDS_FILE, jdbcType=VARCHAR},
+		#{PDS_ORIGINAL, jdbcType=VARCHAR},
+		#{PDS_NO},
+		#{PDS_RE_LEV}, #{PDS_RE_SEQ}, #{PDS_READCOUNT},
+		sysdate)
+	</insert>
+	
+	<select id="Detail" parameterType="int" resultType="Pds">
+		select * from
+		PDS where PDS_NO = #{number}
+	</select>
+	
+	
+	<update id="modify" parameterType="Pds">
+		update PDS
+		set
+		PDS_SORT=#{PDS_SORT},
+		PDS_TITLE=#{PDS_TITLE},
+		PDS_CONTENT=#{PDS_CONTENT},
+		PDS_FILE=#{PDS_FILE, jdbcType=VARCHAR},
+		PDS_ORIGINAL=#{PDS_ORIGINAL, jdbcType=VARCHAR}
+		where
+		PDS_NO=#{PDS_NO}
+	</update>
+	
+	<select id="BoardWriter" parameterType="map" resultType="Pds">
+		select *
+		from PDS where PDS_NO=#{num} and PDS_PASS=#{pass}
+	</select>
+	
+	<delete id="delete" parameterType="Pds">
+	<![CDATA[
+		delete from PDS
+			where PDS_RE_REF = #{PDS_RE_REF}
+			and PDS_RE_LEV >= #{PDS_RE_LEV}
+	 		and PDS_RE_SEQ >= #{PDS_RE_SEQ}
+			and PDS_RE_SEQ <=(
+								nvl((SELECT min(PDS_RE_SEQ)-1
+									FROM PDS 
+									WHERE PDS_RE_REF=#{PDS_RE_REF}
+									AND PDS_RE_LEV=#{PDS_RE_LEV}
+									AND PDS_RE_SEQ>#{PDS_RE_SEQ}) , 
+									(SELECT max(PDS_RE_SEQ) 
+									FROM  PDS
+									WHERE PDS_RE_REF=#{PDS_RE_REF}  ))
+											)
+	]]>
+	</delete>
+	
+</mapper>
