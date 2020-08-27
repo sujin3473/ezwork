@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 영민 결재  -->
+
+<mapper namespace="Apprs">
+	<select id="getlist" parameterType="java.util.Map" resultType="appr">
+		select * from
+		(select rownum rnum, b.*
+		from
+		(select * from
+		approve
+		order by APPR_CODE desc) b
+		)
+		where rnum
+		&gt;=#{start} and rnum &lt;= #{end}
+	</select>
+	
+	<select id="getSearchList" parameterType="java.util.Map" resultType="appr">
+		select * from
+		(select rownum rnum, b.*
+		from
+		(select * from
+		approve
+		<where>
+			<trim prefixOverrides="and | or">
+				<if test="number != '' ">
+					AND APPR_CODE = #{number}
+				</if>
+				<if test="m_name != '' ">
+					AND APPR_NAME = #{m_name}
+				</if>
+				<if test="contentitle != '%%' ">
+					AND
+					(APPR_TITLE LIKE #{contentitle}
+					OR
+					APPR_CONTENT LIKE #{contentitle})
+				</if>
+				<if test="start != '' and end != '' ">
+					AND	to_char(APPR_DATE,'YYYY/MM/DD') between #{start} and #{end}
+				</if>
+				<if test="appr_stat != '' ">
+					AND APPR_STAT = #{appr_stat}
+				</if>
+				<if test="appr_val != '' ">
+					AND APPR_VAL = #{appr_val}
+				</if>
+			</trim>
+		</where>
+		order by APPR_CODE desc) b
+		)
+		where rnum
+		&gt;=#{startrow} and rnum &lt;= #{endrow}		
+	</select>
+	
+	
+	<select id="count" resultType="int">
+		select count(*) from approve
+	</select>
+	
+	<insert id="insertappr" parameterType="appr" >
+		insert into approve
+		(APPR_CODE, M_CODE,APPR_NAME, M_PART, APPR_TITLE, APPR_CONTENT, FIRST_CODE, M_PART_F, SECOND_CODE, M_PART_S,
+		 THIRD_CODE, M_PART_T, APPR_FILE, APPR_ORIGIN, APPR_STAT, APPR_DATE, APPR_COMP_DATE, APPR_VAL,
+		 FIRST_VAL, SECOND_VAL,THIRD_VAL, APPR_COUNT, APPR_CUR_COUNT
+		 )values(	
+		 appr_seq.nextval, #{M_CODE}, #{APPR_NAME}, #{M_PART}, #{APPR_TITLE}, #{APPR_CONTENT}, #{FIRST_CODE}, #{M_PART_F},
+		 #{SECOND_CODE, jdbcType=VARCHAR}, #{M_PART_S, jdbcType=VARCHAR}, #{THIRD_CODE, jdbcType=VARCHAR}, #{M_PART_T, jdbcType=VARCHAR}, #{APPR_FILE, jdbcType=VARCHAR},
+		 #{APPR_ORIGIN, jdbcType=VARCHAR}, #{APPR_STAT}, sysdate, #{APPR_COMP_DATE, jdbcType=VARCHAR}, 0,
+		 0, 0, 0, #{APPR_COUNT}, #{APPR_CUR_COUNT}
+		 )
+	</insert>
+	
+	
+	<select id="getname" parameterType="String" resultType="String">
+		select M_NAME
+		from member
+		where M_CODE = #{m_code}
+	</select>
+	
+	<select id="getpart" parameterType="String" resultType="String">
+		select M_PART_C
+		from member
+		where M_CODE = #{m_code}
+	</select>
+	
+	<select id="getmemList" resultType="member" parameterType="String">
+		select *
+		from member
+		where m_code != 'admin' AND 
+		( m_part_c like #{keyword} OR m_name like #{keyword}  )
+		order by m_part_c asc, m_level asc 
+	</select>
+	
+	<select id="getmemcount" resultType="int">
+		select count(*) from member
+		where m_code != 'admin'
+	</select>
+	
+	<select id="getdetail" resultType="appr" parameterType="int">
+		select * from approve
+		where APPR_CODE = #{num}
+	</select>	
+	
+	<update id="updateAp" parameterType="java.util.Map">
+		update approve
+		set		 
+		${valcol} = #{approve_val},
+		${commcol} = #{comment},
+		
+		(APPR_VAL, APPR_COUNT, APPR_CUR_COUNT) = (
+		SELECT DECODE(APPR_CUR_COUNT+1 , APPR_COUNT, 3 , APPR_VAL+1 ) AS APPR_VAL, APPR_COUNT, APPR_CUR_COUNT+1
+		FROM APPROVE
+		WHERE APPR_CODE= #{apnum})
+		
+		where APPR_CODE = #{apnum}
+	</update>
+	
+	<update id="updateR" parameterType="java.util.Map">
+		update approve
+		set
+		${valcol} = #{approve_val},
+		${commcol} = #{comment},
+		
+		APPR_VAL = 4,
+		APPR_CUR_COUNT = APPR_COUNT
+		where APPR_CODE = #{apnum}
+	</update>	
+	
+	<update id="writeComp" parameterType="int">
+		update approve
+		set
+		APPR_COMP_DATE = sysdate
+		where APPR_CODE = #{apnum}
+	</update>
+	
+</mapper>

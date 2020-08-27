@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="RequestAL">
+	<!--휴가신청 -->
+	<insert id="insert" parameterType="alrequest">
+		insert into REQUEST_AL
+		(AL_DATE,
+		AL_M_NAME,
+		AL_M_PART_C,
+		AL_M_CODE,
+		AL_SORT,
+		AL_STARTDATE,
+		AL_ENDDATE,
+		AL_REASON
+		)
+		values
+		(TO_date(SYSDATE,'YYYY-MM-DD'), 
+		#{AL_M_NAME},
+		#{AL_M_PART_C},
+		#{AL_M_CODE},
+		#{AL_SORT},
+		substr(#{AL_STARTDATE},1,10),
+		substr(#{AL_ENDDATE},1,10),
+		#{AL_REASON}
+		)
+	</insert>
+
+	<select id="list" parameterType="java.util.Map"
+		resultType="alrequest">
+		select * from
+		(select rownum rnum, b.*
+		from
+		(select * from
+		REQUEST_AL
+		order by AL_DATE desc
+		) b
+		)
+		where rnum
+		&gt;=#{start} and rnum
+		&lt;= #{end} and AL_M_CODE = #{id}
+	</select>
+	
+	<!-- list 개수 -->
+	<select id="count" resultType="int">
+		select count(*) from REQUEST_AL WHERE AL_M_CODE = #{id}
+	</select>
+	
+	<select id="teamInfo" parameterType="String" resultType="alrequest">
+	select * from REQUEST_AL where AL_M_PART_C = #{AL_M_PART_C}
+	</select>
+	
+	
+
+</mapper>

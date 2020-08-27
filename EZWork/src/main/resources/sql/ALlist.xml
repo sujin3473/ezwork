@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ALlist">
+	<select id="getcode" resultType="String">
+		select emp_seq.currval
+		from dual 
+	</select>
+
+	<insert id="insert" parameterType="member">		
+		insert into list_al
+		(AL_M_CODE, AL_M_NAME, AL_M_PART_C, AL_M_JOIN_DATE, AL_USED, AL_UNUSED
+		)
+		values(#{M_CODE}, #{M_NAME}, #{M_PART_C}, #{M_JOIN_DATE}, 0, 0)
+	</insert>
+	<!-- 'EMP'||emp_seq.currval -->
+	<update id="update" parameterType="member">
+	
+		update list_al
+		set AL_YEARS = (select
+		floor(months_between(sysdate,AL_M_JOIN_DATE)/12)
+		from list_al where
+		AL_M_CODE = #{M_CODE} ) where AL_M_CODE = #{M_CODE}
+	</update>
+
+	<update id="updateOver" parameterType="member">
+		
+		update list_al
+		set AL_TOTALDAY = (select 11 + 15 + TRUNC((AL_YEARS - 1) / 2
+		)
+		from list_al where
+		AL_YEARS >= 1 and AL_M_CODE =#{M_CODE} ) where
+		AL_M_CODE =
+		#{M_CODE}
+	</update>
+
+	<update id="updateUnder">
+		update list_al
+		set AL_TOTALDAY =11 where AL_YEARS = 0
+	</update>
+
+	<update id="calHour">
+		update list_al
+		set AL_TOTALHOUR = AL_TOTALDAY*8
+	</update>
+
+	<select id="getALInfo" parameterType="String"
+		resultType="allist">
+		select * from list_al where AL_M_CODE = #{id}
+	</select>
+
+
+	<update id="calUsedHour" parameterType="java.util.Map">
+	update list_al
+	set al_used = al_used + ((#{finaldays} + 1) * #{hour}),
+	al_unused = (al_totalhour - (al_used + (#{finaldays} + 1) * #{hour}))
+	where al_m_code = #{id}
+	</update>
+
+
+</mapper>

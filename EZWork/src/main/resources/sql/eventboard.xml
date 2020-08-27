@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="EventBoards">
+
+	<select id="count" resultType="int">
+		select count(*) from eventboard
+	</select>
+
+	<select id="list" parameterType="java.util.Map"
+		resultType="eventboard">
+		select * from
+		(select rownum rnum, b.*
+		from
+		(select * from
+		eventboard
+		order by EV_RE_REF desc,
+		EV_RE_SEQ asc) b
+		)
+		where rnum
+		&gt;=#{start} and rnum &lt;= #{end}
+	</select>
+
+	<update id="ReadCountUpdate" parameterType="int">
+		update eventboard
+		set
+		EV_READCOUNT = EV_READCOUNT+1
+		where EV_NO = #{number}
+	</update>
+
+	<insert id="insert" parameterType="EventBoard">
+		<selectKey resultType="int" order="BEFORE"
+			keyProperty="EV_NO">
+			select nvl(max(EV_NO), 0) + 1 from eventboard
+		</selectKey>
+		insert into eventboard
+		(EV_NO,
+		EV_SORT, EV_NAME, EV_PASS,
+		EV_TITLE, EV_CONTENT, 
+		EV_FILE, EV_ORIGINAL,
+		EV_RE_REF,
+		EV_RE_LEV,
+		EV_RE_SEQ, EV_READCOUNT,
+		EV_DATE)
+		values
+		(#{EV_NO},
+		#{EV_SORT},#{EV_NAME}, #{EV_PASS},
+		#{EV_TITLE}, #{EV_CONTENT},
+		#{EV_FILE, jdbcType=VARCHAR},
+		#{EV_ORIGINAL, jdbcType=VARCHAR},
+		#{EV_NO},
+		#{EV_RE_LEV}, #{EV_RE_SEQ}, #{EV_READCOUNT},
+		sysdate)
+	</insert>
+	
+	<select id="Detail" parameterType="int" resultType="eventboard">
+		select * from
+		eventboard where EV_NO = #{number}
+	</select>
+	
+	
+	<update id="modify" parameterType="EventBoard">
+		update eventboard
+		set
+		EV_SORT=#{EV_SORT},
+		EV_TITLE=#{EV_TITLE},
+		EV_CONTENT=#{EV_CONTENT},
+		EV_FILE=#{EV_FILE, jdbcType=VARCHAR},
+		EV_ORIGINAL=#{EV_ORIGINAL, jdbcType=VARCHAR}
+		where
+		EV_NO=#{EV_NO}
+	</update>
+	
+	<select id="BoardWriter" parameterType="map" resultType="eventboard">
+		select *
+		from eventboard where EV_NO=#{num} and EV_PASS=#{pass}
+	</select>
+	
+	<delete id="delete" parameterType="EventBoard">
+	<![CDATA[
+		delete from eventboard
+			where EV_RE_REF = #{EV_RE_REF}
+			and EV_RE_LEV >= #{EV_RE_LEV}
+	 		and EV_RE_SEQ >= #{EV_RE_SEQ}
+			and EV_RE_SEQ <=(
+								nvl((SELECT min(ev_re_seq)-1
+									FROM EVENTBOARD 
+									WHERE EV_RE_REF=#{EV_RE_REF}
+									AND EV_RE_LEV=#{EV_RE_LEV}
+									AND EV_RE_SEQ>#{EV_RE_SEQ}) , 
+									(SELECT max(ev_re_seq) 
+									FROM  EVENTBOARD  
+									WHERE EV_RE_REF=#{EV_RE_REF}  ))
+											)
+	]]>
+	</delete>
+	
+</mapper>

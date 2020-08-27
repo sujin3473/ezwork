@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 수진 : 회의실 예약 기능 -->
+
+<mapper namespace="Reserves">
+
+    <insert id="insert" parameterType="mroom">
+   	  <selectKey resultType="int" order="BEFORE" keyProperty="MNUM">
+		 select nvl(max(MNUM),0)+1 from MEETINGROOM
+	  </selectKey>
+		insert into MEETINGROOM
+		(MNUM, RNAME, USER_TEL, MSUBJECT, MTIME, USER_NAME)
+		 values(#{MNUM}, #{RNAME}, #{USER_TEL}, #{MSUBJECT}, #{MTIME}, #{USER_NAME})
+	</insert>
+	
+	<select id="check" parameterType="mroom" resultType="int">
+		select count(*) from MEETINGROOM
+		where RNAME=#{RNAME} and MTIME=#{MTIME}
+	</select>
+	
+	<select id="list" resultType="mroom">
+		select* from MEETINGROOM
+	</select>
+	
+	<delete id="reset">
+		truncate table MEETINGROOM
+	</delete>
+</mapper>

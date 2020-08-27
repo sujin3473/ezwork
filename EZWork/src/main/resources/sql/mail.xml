@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 수진 - 메일 기능 -->
+
+<mapper namespace="Mails">
+
+    <insert id="insertout" parameterType="mail">
+   	  <selectKey resultType="int" order="BEFORE" keyProperty="MAIL_NUM">
+		 select nvl(max(MAIL_NUM),0)+1 from SENTMAIL
+	  </selectKey>
+		insert into SENTMAIL
+		(MAIL_NUM, MAIL_SENDER, M_FILE, MAIL_RECIPIENT, MAIL_SUBJECT,
+		   MAIL_CONTENT, MAIL_FILE, MAIL_ORIGINAL,
+		   MAIL_RCHECK, MAIL_TYPE, MAIL_DATE)
+		 values(#{MAIL_NUM}, #{MAIL_SENDER}, #{M_FILE}, #{MAIL_RECIPIENT}, #{MAIL_SUBJECT}, #{MAIL_CONTENT},
+		 #{MAIL_FILE, jdbcType=VARCHAR}, #{MAIL_ORIGINAL, jdbcType=VARCHAR},
+		 0, 'out', sysdate)
+	</insert>
+	
+	<insert id="insertin" parameterType="mail">
+   	  <selectKey resultType="int" order="BEFORE" keyProperty="MAIL_NUM">
+		 select nvl(max(MAIL_NUM),0)+1 from RECEIPTMAIL
+	  </selectKey>
+		insert into RECEIPTMAIL
+		(MAIL_NUM, MAIL_SENDER, M_FILE, MAIL_RECIPIENT, MAIL_SUBJECT,
+		   MAIL_CONTENT, MAIL_FILE, MAIL_ORIGINAL,
+		   MAIL_RCHECK, MAIL_TYPE, MAIL_DATE)
+		 values(#{MAIL_NUM}, #{MAIL_SENDER}, #{M_FILE}, #{MAIL_RECIPIENT}, #{MAIL_SUBJECT}, #{MAIL_CONTENT},
+		 #{MAIL_FILE, jdbcType=VARCHAR}, #{MAIL_ORIGINAL, jdbcType=VARCHAR},
+		 0, 'in', sysdate)
+	</insert>
+	
+	 <insert id="temp" parameterType="mail">
+		<selectKey resultType="int" order="BEFORE" keyProperty="MAIL_NUM">
+			select nvl(max(MAIL_NUM),0)+1 from SENTMAIL
+		</selectKey>
+		insert into SENTMAIL
+		(MAIL_NUM, MAIL_SENDER, MAIL_RECIPIENT, MAIL_SUBJECT,
+		   MAIL_CONTENT, MAIL_FILE, MAIL_ORIGINAL,
+		   MAIL_RCHECK, MAIL_TYPE, MAIL_DATE)
+		 values(#{MAIL_NUM}, #{MAIL_SENDER}, #{MAIL_RECIPIENT}, #{MAIL_SUBJECT}, #{MAIL_CONTENT},
+		 #{MAIL_FILE, jdbcType=VARCHAR}, #{MAIL_ORIGINAL, jdbcType=VARCHAR},
+		 0, 'temp', sysdate)
+	</insert>
+	
+	<update id="RCheckUpdate" parameterType="int">
+		update RECEIPTMAIL
+		set MAIL_RCHECK=MAIL_RCHECK+1
+		where MAIL_NUM=#{number}
+	</update>
+	
+	<select id="incount" parameterType="String" resultType="int">
+		select count(*) from RECEIPTMAIL
+		where MAIL_RECIPIENT=#{id} and MAIL_TYPE='in'
+	</select>
+	
+	<select id="outcount" parameterType="String" resultType="int">
+		select count(*) from SENTMAIL
+		where MAIL_SENDER=#{id} and MAIL_TYPE='out'
+	</select>
+	
+	<select id="binoutcount" parameterType="String" resultType="int">
+		select count(*) from SENTMAIL
+		where MAIL_SENDER=#{id} and MAIL_TYPE='sbin'
+	</select>
+	
+	<select id="binincount" parameterType="String" resultType="int">
+		select count(*) from RECEIPTMAIL
+		where MAIL_RECIPIENT=#{id} and MAIL_TYPE='rbin'
+	</select>
+	
+	<select id="tempcount" parameterType="String" resultType="int">
+		select count(*) from SENTMAIL
+		where MAIL_SENDER=#{id} and MAIL_TYPE='temp'
+	</select>
+	
+	<select id="inlist" parameterType="java.util.Map" resultType="mail">
+		select* from 
+			(select rownum rnum, m.*
+			 from 
+			 	(select* from RECEIPTMAIL
+			 	 where MAIL_RECIPIENT=#{sender} and MAIL_TYPE='in' 
+			 	 order by MAIL_DATE desc) m)
+		where rnum &gt;=#{start} and rnum &lt;=#{end}
+	</select>
+	
+	<select id="outlist" parameterType="java.util.Map" resultType="mail">
+		select* from 
+			(select rownum rnum, m.*
+			 from 
+			 	(select* from SENTMAIL
+			 	 where MAIL_SENDER=#{sender} and MAIL_TYPE='out' 
+			 	 order by MAIL_DATE desc) m)
+		where rnum &gt;=#{start} and rnum &lt;=#{end}
+	</select>
+	
+	<select id="templist" parameterType="java.util.Map" resultType="mail">
+		select* from 
+			(select rownum rnum, m.*
+			 from 
+			 	(select* from SENTMAIL
+			 	 where MAIL_SENDER=#{sender} and MAIL_TYPE='temp' 
+			 	 order by MAIL_DATE desc) m)
+		where rnum &gt;=#{start} and rnum &lt;=#{end}
+	</select>
+	
+	<select id="binlist" parameterType="java.util.Map" resultType="mail">
+		select* from
+			(select rownum rnum, u.*
+			from
+				(select* 
+				from 
+					(select* from SENTMAIL
+				 	 where MAIL_SENDER=#{id} and MAIL_TYPE='sbin'
+				 	 union 
+					 select* from RECEIPTMAIL
+				 	 where MAIL_RECIPIENT=#{id} and MAIL_TYPE='rbin') 
+				order by MAIL_DATE desc) u)
+		where rnum &gt;=#{start} and rnum &lt;=#{end}
+	</select>	
+	
+	<update id="RcheckUpdate" parameterType="int">
+		update RECEIPTMAIL
+		set MAIL_RCHECK = 1
+		where MAIL_NUM = #{number}
+	</update>
+	
+	<select id="indetail" parameterType="int" resultType="mail">
+		select* from RECEIPTMAIL where MAIL_NUM=#{number}
+	</select>
+	
+	<select id="outdetail" parameterType="int" resultType="mail">
+		select* from SENTMAIL where MAIL_NUM=#{number}
+	</select>
+	
+	<update id="intobin" parameterType="int">
+		update RECEIPTMAIL
+		set MAIL_TYPE='rbin'
+		where MAIL_NUM=#{number}
+	</update>
+	
+	<update id="outtobin" parameterType="int">
+		update SENTMAIL
+		set MAIL_TYPE='sbin'
+		where MAIL_NUM=#{number}
+	</update>
+	
+	<delete id="tempdelete" parameterType="int">
+		delete from SENTMAIL 
+		where MAIL_NUM=#{number} and MAIL_TYPE='temp'
+	</delete>
+	
+	<delete id="sentdelete" parameterType="int">
+		delete from SENTMAIL 
+		where MAIL_NUM=#{number} and MAIL_TYPE='sbin'
+	</delete>
+	
+	<delete id="receiptdelete" parameterType="int">
+		delete from RECEIPTMAIL 
+		where MAIL_NUM=#{number} and MAIL_TYPE='rbin'
+	</delete>
+</mapper>

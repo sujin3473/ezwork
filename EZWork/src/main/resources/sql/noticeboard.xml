@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="NoticeBoards">
+
+	<select id="count" resultType="int">
+		select count(*) from noticeboard
+	</select>
+
+	<select id="list" parameterType="java.util.Map"
+		resultType="noticeboard">
+		select * from
+		(select rownum rnum, b.*
+		from
+		(select * from
+		noticeboard
+		order by NO_RE_REF desc,
+		NO_RE_SEQ asc) b
+		)
+		where rnum
+		&gt;=#{start} and rnum &lt;= #{end}
+	</select>
+
+	<update id="ReadCountUpdate" parameterType="int">
+		update noticeboard
+		set
+		NO_READCOUNT = NO_READCOUNT+1
+		where NO_NO = #{number}
+	</update>
+
+	<insert id="insert" parameterType="NoticeBoard">
+		<selectKey resultType="int" order="BEFORE"
+			keyProperty="NO_NO">
+			select nvl(max(NO_NO), 0) + 1 from noticeboard
+		</selectKey>
+		insert into noticeboard
+		(NO_NO,
+		NO_SORT, NO_NAME, NO_PASS,
+		NO_TITLE, NO_CONTENT, 
+		NO_FILE, NO_ORIGINAL,
+		NO_RE_REF,
+		NO_RE_LEV,
+		NO_RE_SEQ, NO_READCOUNT,
+		NO_DATE)
+		values
+		(#{NO_NO},
+		#{NO_SORT},#{NO_NAME}, #{NO_PASS},
+		#{NO_TITLE}, #{NO_CONTENT},
+		#{NO_FILE, jdbcType=VARCHAR},
+		#{NO_ORIGINAL, jdbcType=VARCHAR},
+		#{NO_NO},
+		#{NO_RE_LEV}, #{NO_RE_SEQ}, #{NO_READCOUNT},
+		sysdate)
+	</insert>
+	
+	<select id="Detail" parameterType="int" resultType="noticeboard">
+		select * from
+		noticeboard where NO_NO = #{number}
+	</select>
+	
+	
+	<update id="modify" parameterType="NoticeBoard">
+		update noticeboard
+		set
+		NO_SORT=#{NO_SORT},
+		NO_TITLE=#{NO_TITLE},
+		NO_CONTENT=#{NO_CONTENT},
+		NO_FILE=#{NO_FILE, jdbcType=VARCHAR},
+		NO_ORIGINAL=#{NO_ORIGINAL, jdbcType=VARCHAR}
+		where
+		NO_NO=#{NO_NO}
+	</update>
+	
+	<select id="BoardWriter" parameterType="map" resultType="noticeboard">
+		select *
+		from noticeboard where NO_NO=#{num} and NO_PASS=#{pass}
+	</select>
+	
+	<delete id="delete" parameterType="NoticeBoard">
+	<![CDATA[
+		delete from noticeboard
+			where NO_RE_REF = #{NO_RE_REF}
+			and NO_RE_LEV >= #{NO_RE_LEV}
+	 		and NO_RE_SEQ >= #{NO_RE_SEQ}
+			and NO_RE_SEQ <=(
+								nvl((SELECT min(no_re_seq)-1
+									FROM NOTICEBOARD 
+									WHERE NO_RE_REF=#{NO_RE_REF}
+									AND NO_RE_LEV=#{NO_RE_LEV}
+									AND NO_RE_SEQ>#{NO_RE_SEQ}) , 
+									(SELECT max(no_re_seq) 
+									FROM  NOTICEBOARD  
+									WHERE NO_RE_REF=#{NO_RE_REF}  ))
+											)
+	]]>
+	</delete>
+	
+</mapper>
